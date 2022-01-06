@@ -1,100 +1,63 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import {FlatList, StyleSheet, View} from 'react-native';
+import React, {useState} from 'react';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-  useColorScheme,
-} from 'react-native';
+import EmptyList from './src/components/EmptyList';
+import HeaderList from './src/components/HeaderList';
+import InputTask from './src/components/InputTask';
+import TaskItem from './src/components/TaskItem';
 
-import type {Node} from 'react';
-import React from 'react';
+const App = () => {
+  const [taskList, setTaskList] = useState([]);
 
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
+  const handleAddTask = newTask => {
+    let newList = [
+      ...taskList,
+      {id: Math.random(), task: newTask, completed: false},
+    ];
+    setTaskList(newList.sort((a, b) => a.completed - b.completed));
+  };
+
+  const handleDeleteTask = id => {
+    setTaskList(taskList.filter(el => el.id !== id));
+  };
+
+  const handleCheckTask = (id, val) => {
+    setTaskList(prevTask =>
+      prevTask
+        .map(el => (el.id === id ? {...el, completed: val} : el))
+        .sort((a, b) => a.completed - b.completed),
+    );
+  };
+
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    <View style={styles.container}>
+      <InputTask addTask={newTask => handleAddTask(newTask)} />
+      <View style={styles.taskListContainer}>
+        <FlatList
+          keyExtractor={item => item.id.toString()}
+          ListHeaderComponent={HeaderList}
+          data={taskList}
+          renderItem={({item}) => (
+            <TaskItem
+              task={item}
+              deleteTask={handleDeleteTask}
+              completeTask={handleCheckTask}
+            />
+          )}
+          ListEmptyComponent={EmptyList}
+        />
+      </View>
     </View>
   );
 };
 
-const App: () => Node = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Hola, Coder!">
-            <Text>Curso React Native - Lescano Leandro</Text>
-          </Section>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
-
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    flex: 1,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  taskListContainer: {
+    flex: 1,
+    paddingHorizontal: 40,
   },
 });
 
